@@ -39,11 +39,14 @@ async def generate_image(prompt):
     return response['data'][0]['url']
 
 @exception_handler_decorator
-async def transcribe(url):
+async def speech_to_text(url, mode):
     local_filename = "temp_audio.mp3"
     await download_file(url, local_filename)
     audio_file = open(local_filename, "rb")
-    return openai.Audio.transcribe("whisper-1", audio_file)
+    if mode == 0:
+        return openai.Audio.transcribe("whisper-1", audio_file)
+    else:
+        return openai.Audio.translate("whisper-1", audio_file)
 
 @exception_handler_decorator
 async def clear_history(channel_id):

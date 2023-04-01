@@ -42,6 +42,15 @@ async def imagine(ctx, prompt:str):
 @exception_handler_decorator
 @agi.command(description="transcribe audio file")
 async def transcribe(ctx, message_link:str):
+    await speech_to_text(ctx, message_link, 0)
+
+@exception_handler_decorator
+@agi.command(description="translate audio file")
+async def translate(ctx, message_link:str):
+    await speech_to_text(ctx, message_link, 1)
+
+@exception_handler_decorator
+async def speech_to_text(ctx, message_link:str, mode):
     try:
         await ctx.defer()
         splits = message_link.split('/')
@@ -56,13 +65,14 @@ async def transcribe(ctx, message_link:str):
         if message.attachments:
             audio_attachment = message.attachments[0]
         #MIME type
-        if audio_attachment.content_type == 'audio/mpeg':
-            transcript = await openai_helper.transcribe(audio_attachment.url)
+        if audio_attachment.content_type == 'audio/mpeg':         
+            transcript = await openai_helper.speech_to_text(audio_attachment.url, mode)
             await ctx.followup.send(f"🎵 {message_link}\n📝 {transcript.text}")
         else:
             await ctx.followup.send(f"🚫 require mp3 file")
     except Exception as e:
         await ctx.followup.send(f"🚫 Caught an exception: {e}")
+
 
 @exception_handler_decorator
 @bot.command(description="delete channel msgs, <= 0 to purge")
