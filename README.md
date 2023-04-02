@@ -19,8 +19,8 @@ The bot supports the following slash commands:
 - `/agi transcribe`: Transcribe an audio file using the Whisper-1 model.
 - `/agi translate`: Translate an audio file from other languages to English using the Whisper-1 model.
 - `/agi memento`: Clear the `chat_complete` history and reset the bot's memory to start a new conversation.
+- `/clear`: delete chat messages in a channel.
 
-Additionally, the bot can automatically clear and delete chat messages in a channel.
 
 To run the bot, execute the `launch.bat` file.
 
