@@ -1,6 +1,12 @@
 import discord
 import openai_helper 
 from Utilities import exception_handler_decorator, config
+import random
+
+human__emoji = "🗣️"
+bot__emoji = "🤖"
+transcribe_emoji ="📝"
+translate_emoji = "🌐"
 
 discord_token = config["discord_token"]
 bot = discord.Bot()
@@ -18,7 +24,18 @@ async def chat_complete(ctx, msg: str):
 
     await ctx.defer()
     response = await openai_helper.generate_response(msg, ctx.channel_id)
-    await ctx.followup.send(f"❓: {msg}\n ✅:{response}")
+    embed = discord.Embed(
+        title=f"{human__emoji}: {msg}",
+        description=f"{bot__emoji}: {response}",
+        color=random_color()
+    )
+    #embed.add_field(name=human__emoji, value=msg)
+    #embed.add_field(name=bot__emoji, value=response)
+    #await ctx.followup.send(f"❓: {msg}\n ✅:{response}")
+    try:
+        await ctx.followup.send(embed=embed)
+    except Exception as e:
+        await ctx.followup.send(e)
 
 @exception_handler_decorator
 @agi.command(description="reset bot chat history")
@@ -32,10 +49,13 @@ async def memento(ctx):
 async def imagine(ctx, prompt:str):
     await ctx.defer()
     image_url = await openai_helper.generate_image(prompt)
-    embed = discord.Embed()
+    embed = discord.Embed(
+        color=random_color()
+    )
     if image_url:
         embed.set_image(url=image_url)
-        await ctx.followup.send(f"🎨 {prompt}\n", embed=embed)
+        embed.set_footer(text = f"🎨 {prompt}\n")
+        await ctx.followup.send(embed=embed)
     else:
         await ctx.followup.send(f"🎨 {prompt}\n 🚫 content not allowed", )
 
@@ -67,7 +87,14 @@ async def speech_to_text(ctx, message_link:str, mode):
         #MIME type
         if audio_attachment.content_type == 'audio/mpeg':         
             transcript = await openai_helper.speech_to_text(audio_attachment.url, mode)
-            await ctx.followup.send(f"🎵 {message_link}\n📝 {transcript.text}")
+            mode_emoji = transcribe_emoji if mode == 0 else translate_emoji
+            embed = discord.Embed(
+                title=f"🎵: {message_link}",
+                description=f"{mode_emoji}: {transcript.text}",
+                color=random_color()
+            )   
+            #await ctx.followup.send(f"🎵 {message_link}\n📝 {transcript.text}")
+            await ctx.followup.send(embed=embed)
         else:
             await ctx.followup.send(f"🚫 require mp3 file")
     except Exception as e:
@@ -105,5 +132,6 @@ async def clear(ctx, amount:int):
 
     await ctx.followup.send(f"channel chat msgs deleted ✅")
 
-
+def random_color():
+    return discord.Color.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 bot.run(discord_token)
