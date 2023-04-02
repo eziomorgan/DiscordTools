@@ -128,3 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 /OpenAI bot/config.json
+/OpenAI bot/img/
+/OpenAI bot/audio/

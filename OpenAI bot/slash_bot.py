@@ -73,7 +73,6 @@ async def speech_to_text(ctx, message_link:str, mode):
     except Exception as e:
         await ctx.followup.send(f"🚫 Caught an exception: {e}")
 
-
 @exception_handler_decorator
 @bot.command(description="delete channel msgs, <= 0 to purge")
 async def clear(ctx, amount:int):

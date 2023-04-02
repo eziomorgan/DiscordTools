@@ -1,11 +1,13 @@
 import openai
 import copy
+import uuid
 from Utilities import exception_handler_decorator, download_file, config
 
 openai.api_key = config["openai_key"]
 original_message = [
     {"role": "system", "content": "You are a helpful assistant."},
 ]
+
 messages = copy.deepcopy(original_message)
 message_channels = {}
 
@@ -36,11 +38,13 @@ async def generate_image(prompt):
         n=1,
         size="1024x1024"
     )
+    img_name = f".\\img\\{uuid.uuid4()}.png"
+    await download_file(response['data'][0]['url'], img_name)
     return response['data'][0]['url']
 
 @exception_handler_decorator
 async def speech_to_text(url, mode):
-    local_filename = "temp_audio.mp3"
+    local_filename = f".\\audio\\{uuid.uuid4()}.mp3"
     await download_file(url, local_filename)
     audio_file = open(local_filename, "rb")
     if mode == 0:
