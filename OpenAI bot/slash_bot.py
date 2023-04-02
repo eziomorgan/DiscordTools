@@ -2,6 +2,7 @@ import discord
 import openai_helper 
 from Utilities import exception_handler_decorator, config
 import random
+import log_helper
 
 human__emoji = "🗣️"
 bot__emoji = "🤖"
@@ -29,11 +30,10 @@ async def chat_complete(ctx, msg: str):
         description=f"{bot__emoji}: {response}",
         color=random_color()
     )
-    #embed.add_field(name=human__emoji, value=msg)
-    #embed.add_field(name=bot__emoji, value=response)
-    #await ctx.followup.send(f"❓: {msg}\n ✅:{response}")
     try:
         await ctx.followup.send(embed=embed)
+        interaction = log_helper.get_interaction(str(ctx.channel.id), str(ctx.author), "chat_complete", msg, response)
+        log_helper.log_interaction(interaction)
     except Exception as e:
         await ctx.followup.send(e)
 
@@ -93,7 +93,6 @@ async def speech_to_text(ctx, message_link:str, mode):
                 description=f"{mode_emoji}: {transcript.text}",
                 color=random_color()
             )   
-            #await ctx.followup.send(f"🎵 {message_link}\n📝 {transcript.text}")
             await ctx.followup.send(embed=embed)
         else:
             await ctx.followup.send(f"🚫 require mp3 file")
@@ -134,4 +133,5 @@ async def clear(ctx, amount:int):
 
 def random_color():
     return discord.Color.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
 bot.run(discord_token)

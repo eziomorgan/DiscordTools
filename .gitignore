@@ -130,3 +130,4 @@ dmypy.json
 /OpenAI bot/config.json
 /OpenAI bot/img/
 /OpenAI bot/audio/
+/OpenAI bot/bot_interactions.db
