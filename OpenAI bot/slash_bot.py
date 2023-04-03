@@ -7,7 +7,8 @@ human__emoji = "🗣️"
 bot__emoji = "🤖"
 transcribe_emoji ="📝"
 translate_emoji = "🌐"
-
+embed_title_limit = 256
+embed_description_limit = 4096
 discord_token = config["discord_token"]
 bot = discord.Bot()
 agi = bot.create_group("agi", "openai api commands")
@@ -24,11 +25,7 @@ async def chat_complete(ctx, msg: str):
 
     await ctx.defer()
     response = await openai_helper.generate_response(msg, ctx.channel_id)
-    embed = discord.Embed(
-        title=truncate_text(f"{human__emoji}: {(msg)}", limit=256),
-        description=f"{bot__emoji}: {response}",
-        color=random_color()
-    )
+    embed = get_discord_embed(f"{human__emoji}: {(msg)}", f"{bot__emoji}: {response}")
     try:
         await ctx.followup.send(embed=embed)
         interaction = log_helper.get_interaction(str(ctx.channel.id), 
@@ -108,11 +105,7 @@ async def speech_to_text(ctx, message_link:str, mode):
         if audio_attachment.content_type == 'audio/mpeg':         
             transcript = await openai_helper.speech_to_text(audio_attachment.url, mode)
             mode_emoji = transcribe_emoji if mode == 0 else translate_emoji
-            embed = discord.Embed(
-                title=f"🎵: {message_link}",
-                description=f"{mode_emoji}: {transcript.text}",
-                color=random_color()
-            )   
+            embed = get_discord_embed(f"🎵: {message_link}", f"{mode_emoji}: {transcript.text}")
             await ctx.followup.send(embed=embed)
         else:
             await ctx.followup.send(f"🚫 require mp3 file")
@@ -150,5 +143,12 @@ async def clear(ctx, amount:int):
                 break
 
     await ctx.followup.send(f"channel chat msgs deleted ✅")
+
+def get_discord_embed(title, description):
+    return discord.Embed(
+                title=truncate_text(title, limit=embed_title_limit),
+                description=truncate_text(description, limit=embed_description_limit),
+                color=random_color()
+            )   
 
 bot.run(discord_token)
