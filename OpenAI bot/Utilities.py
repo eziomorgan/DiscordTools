@@ -1,6 +1,8 @@
 import asyncio
 import aiohttp
 import json
+import random
+import discord
 
 def load_config(file_path):
     with open(file_path, "r") as file:
@@ -37,5 +39,11 @@ async def download_file(url, local_filename):
                         break
                     f.write(chunk)
 
+def truncate_text(text: str, limit: int, ellipsis: str = "...") -> str:
+    if len(text) > limit:
+        return text[: limit - len(ellipsis)] + ellipsis
+    else:
+        return text
 
-
+def random_color():
+    return discord.Color.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))

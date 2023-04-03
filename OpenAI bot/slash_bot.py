@@ -1,7 +1,6 @@
 import discord
 import openai_helper 
-from Utilities import exception_handler_decorator, config
-import random
+from Utilities import exception_handler_decorator, truncate_text, random_color, config
 import log_helper
 
 human__emoji = "🗣️"
@@ -26,7 +25,7 @@ async def chat_complete(ctx, msg: str):
     await ctx.defer()
     response = await openai_helper.generate_response(msg, ctx.channel_id)
     embed = discord.Embed(
-        title=f"{human__emoji}: {msg}",
+        title=truncate_text(f"{human__emoji}: {(msg)}", limit=256),
         description=f"{bot__emoji}: {response}",
         color=random_color()
     )
@@ -42,6 +41,11 @@ async def chat_complete(ctx, msg: str):
         log_helper.log_interaction(interaction)
     except Exception as e:
         await ctx.followup.send(e)
+
+@exception_handler_decorator
+@bot.message_command(name="chat complete")
+async def chat_complete_from_msg(ctx, message: discord.Message):
+    await chat_complete(ctx, message.content)
 
 @exception_handler_decorator
 @agi.command(description="reset bot chat history")
@@ -71,9 +75,19 @@ async def transcribe(ctx, message_link:str):
     await speech_to_text(ctx, message_link, 0)
 
 @exception_handler_decorator
+@bot.message_command(name="transcribe audio file")
+async def transcribe_audio_from_msg(ctx, message: discord.Message):
+    await speech_to_text(ctx, message.jump_url, 0)
+
+@exception_handler_decorator
 @agi.command(description="translate audio file")
 async def translate(ctx, message_link:str):
     await speech_to_text(ctx, message_link, 1)
+
+@exception_handler_decorator
+@bot.message_command(name="translate audio file")
+async def translate_audio_from_msg(ctx, message:discord.Message):
+    await speech_to_text(ctx, message.jump_url, 1)
 
 @exception_handler_decorator
 async def speech_to_text(ctx, message_link:str, mode):
@@ -136,8 +150,5 @@ async def clear(ctx, amount:int):
                 break
 
     await ctx.followup.send(f"channel chat msgs deleted ✅")
-
-def random_color():
-    return discord.Color.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 bot.run(discord_token)
