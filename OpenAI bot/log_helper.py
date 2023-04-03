@@ -16,6 +16,8 @@ def create_table(conn):
     create_table_sql = """CREATE TABLE IF NOT EXISTS interactions (
                               id INTEGER PRIMARY KEY AUTOINCREMENT,
                               channel_id TEXT NOT NULL,
+                              guild_id TEXT,
+                              channel_type TEXT NOT NULL,
                               author TEXT NOT NULL,
                               command_type TEXT NOT NULL,
                               input TEXT NOT NULL,
@@ -36,14 +38,14 @@ if global_conn:
 
 def log_interaction(interaction):
     global global_conn
-    sql = '''INSERT INTO interactions(channel_id, author, command_type, input, output, timestamp)
-             VALUES(?,?,?,?,?,?)'''
+    sql = '''INSERT INTO interactions(channel_id, guild_id, channel_type, author, command_type, input, output, timestamp)
+             VALUES(?,?,?,?,?,?,?,?)'''
     cur = global_conn.cursor()
     cur.execute(sql, interaction)
     global_conn.commit()
     return cur.lastrowid
 
-def get_interaction(channel_id, author, command_type, input, output):
+def get_interaction(channel_id, guild_id, channel_type, author, command_type, input, output):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    interaction = (channel_id, author, command_type, input, output, timestamp)
+    interaction = (channel_id, guild_id, channel_type, author, command_type, input, output, timestamp)
     return interaction

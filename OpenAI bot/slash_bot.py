@@ -32,7 +32,13 @@ async def chat_complete(ctx, msg: str):
     )
     try:
         await ctx.followup.send(embed=embed)
-        interaction = log_helper.get_interaction(str(ctx.channel.id), str(ctx.author), "chat_complete", msg, response)
+        interaction = log_helper.get_interaction(str(ctx.channel.id), 
+                                                 str(ctx.guild.id) if ctx.guild else None,
+                                                 "guild" if ctx.guild else "dm",
+                                                 str(ctx.author), 
+                                                 "chat_complete", 
+                                                 msg,
+                                                 response)
         log_helper.log_interaction(interaction)
     except Exception as e:
         await ctx.followup.send(e)
