@@ -10,6 +10,7 @@ translate_emoji = "🌐"
 embed_title_limit = 256
 embed_description_limit = 4096
 discord_token = config["discord_token"]
+save_chat = config["save_chat"]
 bot = discord.Bot()
 agi = bot.create_group("agi", "openai api commands")
 
@@ -25,17 +26,20 @@ async def chat_complete(ctx, msg: str):
 
     await ctx.defer()
     response = await openai_helper.generate_response(msg, ctx.channel_id)
-    embed = get_discord_embed(f"{human__emoji}: {(msg)}", f"{bot__emoji}: {response}")
+    embeds = get_discord_embed(f"{human__emoji}: {(msg)}", f"{bot__emoji}: {response}")
     try:
-        await ctx.followup.send(embed=embed)
-        interaction = log_helper.get_interaction(str(ctx.channel.id), 
-                                                 str(ctx.guild.id) if ctx.guild else None,
-                                                 "guild" if ctx.guild else "dm",
-                                                 str(ctx.author), 
-                                                 "chat_complete", 
-                                                 msg,
-                                                 response)
-        log_helper.log_interaction(interaction)
+        for embed in embeds:
+            await ctx.followup.send(embed=embed)
+        
+        if save_chat == "true":
+            interaction = log_helper.get_interaction(str(ctx.channel.id), 
+                                                    str(ctx.guild.id) if ctx.guild else None,
+                                                    "guild" if ctx.guild else "dm",
+                                                    str(ctx.author), 
+                                                    "chat_complete", 
+                                                    msg,
+                                                    response)
+            log_helper.log_interaction(interaction)
     except Exception as e:
         await ctx.followup.send(e)
 
@@ -105,8 +109,9 @@ async def speech_to_text(ctx, message_link:str, mode):
         if audio_attachment.content_type == 'audio/mpeg':         
             transcript = await openai_helper.speech_to_text(audio_attachment.url, mode)
             mode_emoji = transcribe_emoji if mode == 0 else translate_emoji
-            embed = get_discord_embed(f"🎵: {message_link}", f"{mode_emoji}: {transcript.text}")
-            await ctx.followup.send(embed=embed)
+            embeds = get_discord_embed(f"🎵: {message_link}", f"{mode_emoji}: {transcript.text}")
+            for embed in embeds:    
+                await ctx.followup.send(embed=embed)
         else:
             await ctx.followup.send(f"🚫 require mp3 file")
     except Exception as e:
@@ -144,11 +149,21 @@ async def clear(ctx, amount:int):
 
     await ctx.followup.send(f"channel chat msgs deleted ✅")
 
-def get_discord_embed(title, description):
-    return discord.Embed(
-                title=truncate_text(title, limit=embed_title_limit),
-                description=truncate_text(description, limit=embed_description_limit),
-                color=random_color()
-            )   
+def get_discord_embed(question, answer)->list[discord.Embed]:
+    question_truncates = truncate_text(question, limit=embed_title_limit)
+    answer_truncates = truncate_text(answer, limit=embed_description_limit)
+    color=random_color()
+    embeds = [discord.Embed(
+                title=question_truncates[0],
+                description=answer_truncates[0],
+                color=color
+            ) ]
+    if len(answer_truncates) > 1:
+        for i in range(1, len(answer_truncates)):
+            embeds.append(discord.Embed(
+                description=answer_truncates[i],
+                color=color
+            ))
+    return embeds
 
 bot.run(discord_token)

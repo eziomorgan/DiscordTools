@@ -43,7 +43,6 @@ def log_interaction(interaction):
     cur = global_conn.cursor()
     cur.execute(sql, interaction)
     global_conn.commit()
-    return cur.lastrowid
 
 def get_interaction(channel_id, guild_id, channel_type, author, command_type, input, output):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

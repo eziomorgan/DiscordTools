@@ -1,13 +1,15 @@
 import openai
 import copy
 import uuid
-from Utilities import exception_handler_decorator, download_file, config
+import os
+from Utilities import exception_handler_decorator, download_file, create_folder, config
 
 openai.api_key = config["openai_key"]
 original_message = [
     {"role": "system", "content": "You are a helpful assistant."},
 ]
-
+save_image = config["save_images"].lower()
+save_audio = config["save_audio"].lower()
 messages = copy.deepcopy(original_message)
 message_channels = {}
 
@@ -38,19 +40,24 @@ async def generate_image(prompt):
         n=1,
         size="1024x1024"
     )
-    img_name = f".\\img\\{uuid.uuid4()}.png"
-    await download_file(response['data'][0]['url'], img_name)
+    if save_image == "true":
+        create_folder(".\\img\\")
+        img_name = f".\\img\\{uuid.uuid4()}.png"
+        await download_file(response['data'][0]['url'], img_name)
     return response['data'][0]['url']
 
 @exception_handler_decorator
 async def speech_to_text(url, mode):
     local_filename = f".\\audio\\{uuid.uuid4()}.mp3"
     await download_file(url, local_filename)
-    audio_file = open(local_filename, "rb")
-    if mode == 0:
-        return openai.Audio.transcribe("whisper-1", audio_file)
-    else:
-        return openai.Audio.translate("whisper-1", audio_file)
+    with open(local_filename, "rb") as audio_file:
+        if mode == 0:
+            transcripts = openai.Audio.transcribe("whisper-1", audio_file)
+        else:
+            transcripts = openai.Audio.translate("whisper-1", audio_file)
+    if save_audio == "false" and os.path.exists(local_filename):
+        os.remove(local_filename)
+    return transcripts
 
 @exception_handler_decorator
 async def clear_history(channel_id):

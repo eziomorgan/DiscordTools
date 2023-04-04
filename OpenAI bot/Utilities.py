@@ -3,6 +3,7 @@ import aiohttp
 import json
 import random
 import discord
+import os
 
 def load_config(file_path):
     with open(file_path, "r") as file:
@@ -39,11 +40,25 @@ async def download_file(url, local_filename):
                         break
                     f.write(chunk)
 
-def truncate_text(text: str, limit: int, ellipsis: str = "...") -> str:
+def truncate_text(text: str, limit: int, ellipsis: str = "...") -> list[str]:
     if len(text) > limit:
-        return text[: limit - len(ellipsis)] + ellipsis
+        texts = [text[: limit - len(ellipsis)] + ellipsis]
+        pos = limit - len(ellipsis)
+        while pos < len(text):
+            if pos + limit - len(ellipsis) < len(text):    
+                span = limit - len(ellipsis) * 2
+                texts.append(ellipsis + text[pos:pos + span] + ellipsis)
+                pos+= span
+            else:
+                texts.append(ellipsis + text[pos:len(text)])
+                return texts
+        return texts
     else:
-        return text
+        return [text]
 
 def random_color():
     return discord.Color.from_rgb(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
