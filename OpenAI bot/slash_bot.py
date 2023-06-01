@@ -49,6 +49,18 @@ async def chat_complete_from_msg(ctx, message: discord.Message):
     await chat_complete(ctx, message.content)
 
 @exception_handler_decorator
+@bot.message_command(name="read question from attachment")
+async def chat_complete_from_attachment(ctx, message: discord.Message):
+    if len(message.attachments) == 0:
+        await ctx.followup.send("no attachment found")
+        return
+    attachment = message.attachments[0]
+    #retrieve txt from *.txt attachment
+    if attachment.filename.endswith(".txt"):
+        file = await attachment.read()
+        await chat_complete(ctx, file.decode("utf-8"))
+
+@exception_handler_decorator
 @agi.command(description="reset bot chat history")
 async def memento(ctx):
         await ctx.defer()

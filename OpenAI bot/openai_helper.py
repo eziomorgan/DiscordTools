@@ -25,7 +25,7 @@ async def generate_response(prompt, channel_id):
     prompt_msg = {"role": "user", "content": prompt}
     messages.append(prompt_msg)
     response = openai.ChatCompletion.create(
-        model = 'gpt-3.5-turbo',
+        model = 'gpt-4',
         messages= messages
     )
     reply = response['choices'][0]['message']['content']
